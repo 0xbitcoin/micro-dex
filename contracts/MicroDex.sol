@@ -133,7 +133,8 @@ contract ReserveToken is StandardToken, SafeMath {
 
 contract MicroDex is SafeMath {
 
-   bool locked;
+  bool locked;
+  //check account balances for this token; we do not use ether
 
 
   mapping (address => mapping (address => uint)) public tokens; //mapping of token addresses to mapping of account balances (token=0 means Ether)
@@ -147,8 +148,6 @@ contract MicroDex is SafeMath {
   event Withdraw(address token, address user, uint amount, uint balance);
 
   function MicroDex( ) {
-//    basePairToken = 0xb6ed7644c69416d67b522e20bc294a9a9b405b31;
-    admin = msg.sender;
 
     if(locked)revert();
     locked = true;
@@ -159,7 +158,8 @@ contract MicroDex is SafeMath {
   }
 
 
-  //call this using ApproveAndCall if possible !
+  //call this using ApproveAndCall
+  //allows for interacting with ether directly as token[0]
   function depositToken(address token, uint amount) {
     //remember to call Token(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
     if (token==0) throw;
