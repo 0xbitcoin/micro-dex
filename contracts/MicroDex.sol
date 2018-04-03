@@ -286,7 +286,8 @@ contract MicroDex is SafeMath {
 
     if(action_id == 0x1)
     {
-      return depositToken(from, token, tokens );
+      depositToken(from, token, tokens );
+      return true;
     }
 
     return false;
