@@ -187,12 +187,12 @@ contract MicroDex is SafeMath {
 
   //call this using ApproveAndCall
   //allows for interacting with ether directly as token[0]
-  function depositToken(address token, uint amount) {
+  function depositToken(address from, address token, uint amount) {
     //remember to call Token(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
     if (token==0) throw;
-    if (!Token(token).transferFrom(msg.sender, this, amount)) throw;
-    tokens[token][msg.sender] = safeAdd(tokens[token][msg.sender], amount);
-    Deposit(token, msg.sender, amount, tokens[token][msg.sender]);
+    if (!Token(token).transferFrom(from, this, amount)) throw;
+    tokens[token][from] = safeAdd(tokens[token][from], amount);
+    Deposit(token, from, amount, tokens[token][from]);
   }
 
   function withdrawToken(address token, uint amount) {
@@ -273,4 +273,24 @@ contract MicroDex is SafeMath {
     orderFills[msg.sender][hash] = amountGet;
     Cancel(tokenGet, amountGet, tokenGive, amountGive, expires, nonce, msg.sender, v, r, s);
   }
+
+
+
+  /*
+    Receive approval to spend tokens and perform any action all in one transaction
+  */
+  function receiveApproval(address from, uint256 tokens, address token, bytes data) public returns (bool) {
+
+    //parse the data:   first byte is for 'action_id'
+    byte action_id = data[0];
+
+    if(action_id == 0x1)
+    {
+      return depositToken(from, token, tokens );
+    }
+
+    return false;
+
+  }
+
 }
