@@ -157,7 +157,34 @@ contract MicroDex is SafeMath {
     throw;
   }
 
+  
+  
+  
+   /**
+  * This function handles deposits of Ether into the contract.
+  * Emits a Deposit event.
+  * Note: With the payable modifier, this function accepts Ether.
+  */
+  function deposit() public payable {
+    tokens[0][msg.sender] = tokens[0][msg.sender].add(msg.value);
+    Deposit(0, msg.sender, msg.value, tokens[0][msg.sender]);
+  }
 
+  /**
+  * This function handles withdrawals of Ether from the contract.
+  * Verifies that the user has enough funds to cover the withdrawal.
+  * Emits a Withdraw event.
+  * @param amount uint of the amount of Ether the user wishes to withdraw
+  */
+  function withdraw(uint amount) public {
+    require(tokens[0][msg.sender] >= amount);
+    tokens[0][msg.sender] = tokens[0][msg.sender].sub(amount);
+    msg.sender.transfer(amount);
+    Withdraw(0, msg.sender, amount, tokens[0][msg.sender]);
+  }
+  
+  
+  
   //call this using ApproveAndCall
   //allows for interacting with ether directly as token[0]
   function depositToken(address token, uint amount) {
