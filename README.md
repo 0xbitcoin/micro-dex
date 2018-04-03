@@ -16,4 +16,4 @@ truffle test
 
 
 ###  Published contract on ROPSTEN
-https://ropsten.etherscan.io/address/0x821d4300dd916db9f5e79f6b8a93fe010962404c#code
+https://ropsten.etherscan.io/address/0xc2236f1052199a43d6b7ef6c54b842a095a6b8e3#code
