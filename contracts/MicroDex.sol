@@ -207,12 +207,17 @@ contract MicroDex is SafeMath {
     return tokens[token][user];
   }
 
+
+  //'expires' is an actual block number
   function order(address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce) {
+    if(block.number <= expires) throw;
+
     bytes32 hash = sha256(this, tokenGet, amountGet, tokenGive, amountGive, expires, nonce);
     orders[msg.sender][hash] = true;
     Order(tokenGet, amountGet, tokenGive, amountGive, expires, nonce, msg.sender);
   }
 
+  //This allows you to trade based on a pre-created order OR based on anorder that was only signed!!
   function trade(address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce, address user, uint8 v, bytes32 r, bytes32 s, uint amount) {
     //amount is in amountGet terms
     bytes32 hash = sha256(this, tokenGet, amountGet, tokenGive, amountGive, expires, nonce);
