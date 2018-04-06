@@ -7,6 +7,20 @@ import "./SafeMath.sol";
 /*
 Universal ERC20 Token DEX compatible with LavaWallet
 
+
+
+
+-- General DEX Flow --
+
+A user has tokens deposited in LavaWallet
+They approve the DEX as a spender (either onchain or most typically offchain)
+The user signs an offchain 'Make' order to the DEX
+
+A counterparty 'takes' the order .  (this counterparty already put tokens in the DEX and approved them)
+When this occurs, both of the spending approvals must have been done and then trade() is done
+
+
+Interestingly, the traders can 'preapprove' an enormouse amount of tokens for trading by the dex.  Also, this can be done offchain.
 */
 
 
@@ -254,8 +268,8 @@ contract LavaDex is SafeMath {
 
   function tradeWalletBalancesWithApproval(address wallet, address tokenGet, uint amountGet, address tokenGive, uint amountGive, address user, uint amount) private {
 
-    LavaWallet(wallet).transferTokenFrom( msg.sender, user, tokenGet, amount   );
-    LavaWallet(wallet).transferTokenFrom( user, msg.sender, tokenGive, safeMul(amountGive, amount) / amountGet   );
+    if(!LavaWallet(wallet).transferTokenFrom( msg.sender, user, tokenGet, amount   ))revert();
+    if(!LavaWallet(wallet).transferTokenFrom( user, msg.sender, tokenGive, safeMul(amountGive, amount) / amountGet   ))revert();
 
   }
 
