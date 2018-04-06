@@ -119,6 +119,8 @@ contract ReserveToken is StandardToken, SafeMath {
 
 contract LavaWallet {
 
+  function transferTokenFrom( address from, address to,address token,  uint tokens) public returns (bool success);
+
   function transferFromWithSignature(address from, address to, uint256 tokensApproved,
                                     uint256 tokens, address token,
                                     uint256 nonce, bytes signature) public returns (bool);
@@ -137,7 +139,7 @@ contract LavaDex is SafeMath {
 
 
   //The only way to get 'tokens' is via LavaWallet
-  mapping (address => mapping (address => uint)) public balance; //mapping of token addresses to mapping of account balances (token=0 means Ether)
+  //mapping (address => mapping (address => uint)) public balance; //mapping of token addresses to mapping of account balances (token=0 means Ether)
 
   mapping (address => mapping (bytes32 => bool)) public orders; //mapping of user accounts to mapping of order hashes to booleans (true = submitted by user, equivalent to offchain signature)
   mapping (address => mapping (bytes32 => uint)) public orderFills; //mapping of user accounts to mapping of order hashes to uints (amount of order that has been filled)
@@ -159,6 +161,7 @@ contract LavaDex is SafeMath {
   }
 
 
+/*
   //call this using ApproveAndCall
   //allows for interacting with ether directly as token[0]
   function depositToken(address token, uint amount) {
@@ -174,11 +177,9 @@ contract LavaDex is SafeMath {
   function depositTokenWithSignature(address wallet, address token, address user, uint tokensApproved, uint tokens,
                                     bytes signature, uint signatureNonce) {
     //remember to call Token(address).approve(this, amount) or this contract will not be able to do the transfer on your behalf.
-
     //transfer the tokens into this contract
     if(!LavaWallet(wallet).transferFromWithSignature(user, this, tokensApproved, tokens, token, signatureNonce, signature) ) revert();
   //  if (!Token(token).transferFrom(msg.sender, this, amount)) throw;
-
 
     balance[token][user] = safeAdd(balance[token][user], tokens);
     Deposit(token, user, tokens, balance[token][user]);
@@ -195,6 +196,8 @@ contract LavaDex is SafeMath {
   function balanceOf(address token, address user) constant returns (uint) {
     return balance[token][user];
   }
+  */
+
 
   function order(address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce) {
     bytes32 orderHash = sha256(this, tokenGet, amountGet, tokenGive, amountGive, expires, nonce);
@@ -209,7 +212,7 @@ contract LavaDex is SafeMath {
 
   //first we go depositTokenWithSignature for both the maker and taker (if we want)
   function trade(address tokenGet, uint amountGet, address tokenGive, uint amountGive,
-    uint expires, uint nonce, address user, uint amount, bytes orderSignature   ) {
+    uint expires, uint nonce, address user, uint amount, bytes orderSignature , address wallet  ) {
 
     //amount is in amountGet terms
     bytes32 orderHash = sha3(this, tokenGet, amountGet, tokenGive, amountGive, expires, nonce);
@@ -223,7 +226,7 @@ contract LavaDex is SafeMath {
       safeAdd(orderFills[user][orderHash], amount) <= amountGet
     )) throw;
 
-    tradeBalances(tokenGet, amountGet, tokenGive, amountGive, user, amount);
+    tradeWalletBalancesWithApproval(wallet, tokenGet, amountGet, tokenGive, amountGive, user, amount);
 
     orderFills[user][orderHash] = safeAdd(orderFills[user][orderHash], amount);
     Trade(tokenGet, amount, tokenGive, amountGive * amount / amountGet, user, msg.sender);
@@ -249,10 +252,15 @@ contract LavaDex is SafeMath {
 
   }*/
 
+  function tradeWalletBalancesWithApproval(address wallet, address tokenGet, uint amountGet, address tokenGive, uint amountGive, address user, uint amount) private {
 
+    LavaWallet(wallet).transferTokenFrom( msg.sender, user, tokenGet, amount   );
+    LavaWallet(wallet).transferTokenFrom( user, msg.sender, tokenGive, safeMul(amountGive, amount) / amountGet   );
+
+  }
+
+/*
   function tradeBalances(address tokenGet, uint amountGet, address tokenGive, uint amountGive, address user, uint amount) private {
-
-
     balance[tokenGet][msg.sender] = safeSub(balance[tokenGet][msg.sender], amount);
     balance[tokenGet][user] = safeAdd(balance[tokenGet][user], amount);
 
@@ -269,7 +277,10 @@ contract LavaDex is SafeMath {
     return true;
   }
 
+    */
 
+
+/*
   function availableVolume(address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce, address user, uint8 v, bytes32 r, bytes32 s) constant returns(uint) {
     bytes32 hash = sha256(this, tokenGet, amountGet, tokenGive, amountGive, expires, nonce);
     if (!(
@@ -281,6 +292,7 @@ contract LavaDex is SafeMath {
     if (available1<available2) return available1;
     return available2;
   }
+  */
 
   function amountFilled(address tokenGet, uint amountGet, address tokenGive, uint amountGive, uint expires, uint nonce, address user) constant returns(uint) {
     bytes32 hash = sha3(this, tokenGet, amountGet, tokenGive, amountGive, expires, nonce);
