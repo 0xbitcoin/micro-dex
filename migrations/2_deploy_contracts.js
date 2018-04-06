@@ -1,5 +1,6 @@
-var _0xDex = artifacts.require("./_0xDex.sol");
+var MicroDex = artifacts.require("./MicroDex.sol");
+var LavaDex = artifacts.require("./LavaDex.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(_0xDex);
+  deployer.deploy(LavaDex);
 };
